@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>约瑟夫环问题模拟</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f5f5f5;
+  }
+  .container {
+    text-align: center;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  .circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    position: absolute;
+    border: 1px solid black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    background-color: #ffffff; /* 设置背景色为白色 */
+  }
+  .last-one {
+    background-color: #4CAF50; /* 最后一个人的背景色 */
+    color: white;
+  }
+  .current {
+    background-color: #ffcccc; /* 当前正在判断的圆圈的背景色 */
+  }
+  label {
+    margin-right: 10px;
+    display: inline-block;
+    width: 60px;
+    text-align: right;
+  }
+  input, button {
+    margin: 5px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  input[type="range"] {
+    width: 200px;
+    vertical-align: middle;
+  }
+  button {
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="circleContainer" style="position: relative; height: 400px; width: 400px; margin: 20px auto;"></div>
+  <label for="nInput">人数:</label>
+  <input type="number" id="nInput" placeholder="输入人数N">
+  <label for="mInput">间隔数:</label>
+  <input type="number" id="mInput" placeholder="输入间隔数M">
+  <label for="speedInput">速度:</label>
+  <input type="range" id="speedInput" min="200" max="2000" value="1100" step="100">
+  <button id="startBtn">开始</button>
+</div>
+
+<script>
+  let circles = [];
+  let currentIndex = 0;
+  let intervalId;
+  let isRunning = false; // 新增变量，用于控制操作的状态
+  const circleContainer = document.getElementById('circleContainer');
+  const nInput = document.getElementById('nInput');
+  const mInput = document.getElementById('mInput');
+  const speedInput = document.getElementById('speedInput');
+  const startBtn = document.getElementById('startBtn');
+
+  startBtn.addEventListener('click', function() {
+    clearInterval(intervalId);
+    createCircles(parseInt(nInput.value));
+    isRunning = false; // 确保重新开始时不在运行状态
+    intervalId = setInterval(josephus, 2100 - parseInt(speedInput.value));
+  });
+
+  speedInput.addEventListener('input', function() {
+    clearInterval(intervalId);
+    intervalId = setInterval(josephus, 2100 - parseInt(speedInput.value));
+  });
+
+  function createCircles(n) {
+    const radius = 180;
+    const angle = (2 * Math.PI) / n;
+    circleContainer.innerHTML = '';
+    circles = [];
+    currentIndex = 0;
+
+    for (let i = 0; i < n; i++) {
+      const circle = document.createElement('div');
+      circle.classList.add('circle');
+      const x = radius * Math.cos(angle * i) + 180;
+      const y = radius * Math.sin(angle * i) + 180;
+      circle.style.left = `${x}px`;
+      circle.style.top = `${y}px`;
+      circle.textContent = i + 1;
+      circleContainer.appendChild(circle);
+      circles.push(circle);
+    }
+  }
+
+  function josephus() {
+    if (circles.length === 1) {
+      clearInterval(intervalId);
+      circles[0].classList.add('last-one');
+      return;
+    }
+
+    if (!isRunning) { // 检查是否可以运行
+      isRunning = true;
+      const step = parseInt(mInput.value) - 1;
+      currentIndex = (currentIndex + step) % circles.length;
+      circles.forEach(circle => circle.classList.remove('current')); // 移除所有圆圈的当前状态
+      circles[currentIndex].classList.add('current'); // 高亮当前圆圈
+      setTimeout(() => {
+        circles[currentIndex].remove(); // 移除当前圆圈
+        circles.splice(currentIndex, 1);
+        isRunning = false; // 完成后重置状态
+      }, 500);
+    }
+  }
+</script>
+</body>
+</html>
